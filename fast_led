@@ -1,0 +1,77 @@
+#include "FastLED.h"
+
+#define MOTION_PIN 2
+#define LIGHT_PIN 3
+#define LED_PIN 8
+
+#define NUM_LEDS 110
+#define DEFAULT_LIGHT_DURATION 5000
+#define MAX_LIGHT_DURATION 30000
+#define LOOP_DELAY 100
+
+#define COLOR_TEMPERATURE Tungsten40W
+
+CRGB leds[NUM_LEDS];
+
+long lightDuration = 0;
+
+void setup() {
+  pinMode(MOTION_PIN, INPUT);
+  pinMode(LIGHT_PIN, INPUT);
+
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
+  FastLED.setCorrection(TypicalLEDStrip);
+  FastLED.setTemperature(COLOR_TEMPERATURE);
+}
+
+void loop() {
+  int noLight = digitalRead(LIGHT_PIN);
+  if (noLight == HIGH) {
+    int motion = digitalRead(MOTION_PIN);
+    if (motion == HIGH) {
+      increaseDuration(lightDuration, DEFAULT_LIGHT_DURATION, MAX_LIGHT_DURATION);
+    }
+  } else {
+    lightDuration = 0;
+  }
+
+  if (lightDuration > 0) {
+    lightsOn();
+    reduceDuration(lightDuration, LOOP_DELAY);
+  } else {
+    lightsOff();
+  }
+
+  delay(LOOP_DELAY);
+}
+
+void lightsOn() {
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = COLOR_TEMPERATURE;
+  }
+  FastLED.show();
+}
+
+void lightsOff() {
+  for (int factor = 0; factor <= 50; factor++) {
+    for (int i = 0; i < NUM_LEDS; i++) {
+      leds[i].fadeToBlackBy(20);
+    }
+    delay(20);
+    FastLED.show();
+  }
+  for (int i = 0; i < NUM_LEDS; i++) {
+    leds[i] = CRGB::Black;
+  }
+  FastLED.show();
+}
+
+void reduceDuration(long& duration, int reduce) {
+  duration -= reduce;
+  if (duration < 0) duration = 0;
+}
+
+void increaseDuration(long& duration, int increase, int maxx) {
+  duration += increase;
+  if (duration > maxx) duration = maxx;
+}
