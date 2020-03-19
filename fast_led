@@ -4,35 +4,42 @@
 #define LIGHT_PIN 3
 #define LED_PIN 8
 
-#define NUM_LEDS 110
+#define NUM_LEDS 109
 #define DEFAULT_LIGHT_DURATION 5000
-#define MAX_LIGHT_DURATION 30000
-#define LOOP_DELAY 100
+#define MAX_LIGHT_DURATION 1000
+#define LOOP_DELAY 500
 
-#define COLOR_TEMPERATURE Tungsten40W
+#define COLOR_TEMPERATURE Tungsten100W
 
 CRGB leds[NUM_LEDS];
 
 long lightDuration = 0;
+int ledLight = 0;
 
 void setup() {
   pinMode(MOTION_PIN, INPUT);
   pinMode(LIGHT_PIN, INPUT);
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
 
   FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
   FastLED.setCorrection(TypicalLEDStrip);
   FastLED.setTemperature(COLOR_TEMPERATURE);
+
+  //  Serial.begin(9600);
 }
 
 void loop() {
   int noLight = digitalRead(LIGHT_PIN);
-  if (noLight == HIGH) {
+  if (noLight == HIGH || ledLight) {
     int motion = digitalRead(MOTION_PIN);
     if (motion == HIGH) {
       increaseDuration(lightDuration, DEFAULT_LIGHT_DURATION, MAX_LIGHT_DURATION);
     }
   } else {
+    //    lastLightOn = millis();
     lightDuration = 0;
+    //    Serial.println("Licht");
   }
 
   if (lightDuration > 0) {
@@ -50,9 +57,12 @@ void lightsOn() {
     leds[i] = COLOR_TEMPERATURE;
   }
   FastLED.show();
+  ledLight = 1;  
 }
 
 void lightsOff() {
+  if (leds[0].red == 0) return;
+
   for (int factor = 0; factor <= 50; factor++) {
     for (int i = 0; i < NUM_LEDS; i++) {
       leds[i].fadeToBlackBy(20);
@@ -64,6 +74,7 @@ void lightsOff() {
     leds[i] = CRGB::Black;
   }
   FastLED.show();
+  ledLight = 0;
 }
 
 void reduceDuration(long& duration, int reduce) {
