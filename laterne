@@ -1,0 +1,48 @@
+#include "FastLED.h"
+
+#define LED_PIN 2
+
+#define NUM_LEDS 20
+
+CRGB leds[NUM_LEDS];
+
+long lightDuration = 0;
+int ledLight = 0;
+
+void setup() {
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
+
+  FastLED.addLeds<NEOPIXEL, LED_PIN>(leds, NUM_LEDS);
+
+  //  Serial.begin(9600);
+}
+
+void loop() {
+  for (int i = 19; i > -4; i--) {
+    show_cycle(i);
+    show_cycle(i-8);
+    show_cycle(i-16);
+    delay(100);
+  }
+}
+
+void show_cycle(int i) {
+  show_led(i , 255, 20, 0);
+  show_led(i  - 1, 255, 100, 0);
+  show_led(i  - 2, 255, 20, 0);
+  show_led(i  - 3, 255, 100, 0);
+  show_led(i  - 4, 0, 0, 0);
+  show_led(i  - 5, 0, 0, 0);
+  show_led(i  - 6, 0, 0, 0);
+  show_led(i  - 7, 0, 0, 0);
+  FastLED.show();
+}
+
+void show_led(int i, int r, int g, int b) {
+  if (i < -4) i = NUM_LEDS + i + 4;
+  if (i < 0) return;
+  leds[i].red = r;
+  leds[i].green = g;
+  leds[i].blue = b;
+}
